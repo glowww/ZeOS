@@ -69,6 +69,21 @@
 	  movb $0x20, %al; \
 	  outb %al, $0x20
 
+ENTRY(system_call_handler)
+	SAVE_ALL       
+	cmpl $MAX_SYSCALL, %EAX
+	jg error                     // Save the current context
+	cmpl $0, %EAX
+	jl error
+	call *sys_call_table(,%EAX, 0x04)
+	jmp fin
+error:
+	//movl $-ENOSYS, %EAX  ---> FALLO
+fin:
+	movl %EAX, 0x18(%esp)
+	RESTORE_ALL
+	iret;
+
 ENTRY(keyboard_handler)
 	SAVE_ALL
 	call keyboard_routine
