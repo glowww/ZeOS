@@ -90,14 +90,14 @@ void setIdt()
   set_idt_reg(&idtR);
 }
 
-int keyboard_routine(){
+void keyboard_routine(){
 	Byte value = inb(0x60); //Reads the keyboard data register
-	char scanCode = value & 0x7F;
+	int scanCode = value & 0x7F;
 
-	if (value & 0x80 != 0x80){ //Make (key pressed) -> Translate value
+	if ((value & 0x80) != 0x80){ //Make (key pressed) -> Translate value
 		char pressedCharacter = char_map[scanCode];
 		if (pressedCharacter == '\0') printc_xy(0,0,'C');
-    else print_xy(0, 0, pressedCharacter);
+    else printc_xy(0, 0, pressedCharacter);
 	}
 }
 

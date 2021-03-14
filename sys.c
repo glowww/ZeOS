@@ -47,8 +47,7 @@ void sys_exit()
 {  
 }
 
-#define buff 512
-char sys_buffer[buff];
+char sys_buffer[512];
 int sys_write(int fd, char * buffer, int size){
     int ret;
     int fd_valid = check_fd(fd, ESCRIPTURA);
@@ -59,16 +58,16 @@ int sys_write(int fd, char * buffer, int size){
     if (size < 0) return -EINVAL;
 
     int bytesLeft = size;
-    while(bytesLeft > buff) {
+    while(bytesLeft > 512) {
 	    copy_from_user(buffer,sys_buffer,size);
-	    ret = sys_write_console(sys_buffer, buff);
+	    ret = sys_write_console(sys_buffer, 512);
 	    bytesLeft -= ret;
 	    buffer += ret;
     }
 
     if (bytesLeft > 0) {
 	    copy_from_user(buffer,sys_buffer,size);
-	    ret = sys_write_console(sys_buffer, buff);
+	    ret = sys_write_console(sys_buffer, 512);
 	    bytesLeft -= ret;
     }
     int result = (size - bytesLeft);
