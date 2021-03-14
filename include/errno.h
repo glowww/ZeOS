@@ -3,5 +3,6 @@
 
 #define EFAULT      1;
 #define EINVAL     2;
+#define ENOSYS     34;
 
 #endif
