@@ -94,22 +94,22 @@ ENTRY(gettime)
 
 ENTRY(keyboard_handler)
 	SAVE_ALL
+	EOI
 	call keyboard_routine
 	RESTORE_ALL
-	EOI
 	iret;
 
 ENTRY(system_call_handler)
-	SAVE_ALL       
-	cmpl $MAX_SYSCALL, %EAX
-	jg error                     // Save the current context
-	cmpl $0, %EAX
-	jl error
-	call *sys_call_table(,%EAX, 0x04)
-	jmp fin
-error:
-	//movl $-ENOSYS, %EAX  ---> FALLO
-fin:
-	movl %EAX, 0x18(%esp)
+	SAVE_ALL
+	cmpl $0, %eax
+	jl err
+	cmpl $MAX_SYSCALL, %eax
+	jg err	// Save the current context
+	call *sys_call_table( , %eax, 0x04)
+	jmp end
+err:
+	movl $-38, %eax
+end: 
+	movl %eax, 0x18(%esp)
 	RESTORE_ALL
-	iret;
+	iret
