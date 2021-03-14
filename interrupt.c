@@ -12,6 +12,8 @@
 Gate idt[IDT_ENTRIES];
 Register    idtR;
 
+void keyboard_handler();
+
 extern long int zeos_ticks;
 char char_map[] =
 {
@@ -86,7 +88,10 @@ void setIdt()
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 
-  setInterruptHandler (32, clock_handler, 0);
+  setInterruptHandler(32, clock_handler, 0);
+  setInterruptHandler(33, keyboard_handler, 0);
+
+  /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 
   set_idt_reg(&idtR);
 }
@@ -96,3 +101,16 @@ void clock_routine()
 	zeos_ticks++;
 	zeos_show_clock();
 }
+
+
+int keyboard_routine(){
+	Byte value = inb(0x60); //Reads the keyboard data register
+	char scanCode = value & 0x7F;
+
+	if (value & 0x80 != 0x80){ //Make (key pressed) -> Translate value
+		char pressedCharacter = char_map[scanCode];
+		if (pressedCharacter == '\0') printc_xy(0,0,'C');
+    else print_xy(0, 0, pressedCharacter);
+	}
+}
+

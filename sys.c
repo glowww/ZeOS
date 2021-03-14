@@ -8,6 +8,7 @@
 #include <io.h>
 
 #include <mm.h>
+#include <errno.h>
 
 #include <mm_address.h>
 
@@ -50,4 +51,32 @@ void sys_exit()
 
 int sys_gettime(){
 	return zeos_ticks;
+}
+
+#define buff 512
+char sys_buffer[buff];
+int sys_write(int fd, char * buffer, int size){
+    int ret;
+    int fd_valid = check_fd(fd, ESCRIPTURA);
+    if (fd_valid != 0) return fd_valid; //checks whether file descriptor and operation are correct
+
+    if (buffer == NULL) return -EFAULT;
+
+    if (size < 0) return -EINVAL;
+
+    int bytesLeft = size;
+    while(bytesLeft > buff) {
+	    copy_from_user(buffer,sys_buffer,size);
+	    ret = sys_write_console(sys_buffer, buff);
+	    bytesLeft -= ret;
+	    buffer += ret;
+    }
+
+    if (bytesLeft > 0) {
+	    copy_from_user(buffer,sys_buffer,size);
+	    ret = sys_write_console(sys_buffer, buff);
+	    bytesLeft -= ret;
+    }
+    int result = (size - bytesLeft);
+    return result;
 }

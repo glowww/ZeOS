@@ -91,3 +91,10 @@ ENTRY(gettime)
 	SYSCALL(10);      
 	pop %ebp
 	ret
+
+ENTRY(keyboard_handler)
+	SAVE_ALL
+	call keyboard_routine
+	RESTORE_ALL
+	EOI
+	iret;
