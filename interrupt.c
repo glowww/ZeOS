@@ -87,7 +87,6 @@ void setIdt()
   set_handlers();
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
-
   setInterruptHandler(32, clock_handler, 0);
   setInterruptHandler(33, keyboard_handler, 0);
 
@@ -103,14 +102,14 @@ void clock_routine()
 }
 
 
-int keyboard_routine(){
-	Byte value = inb(0x60); //Reads the keyboard data register
-	char scanCode = value & 0x7F;
+void keyboard_routine(){
 
-	if (value & 0x80 != 0x80){ //Make (key pressed) -> Translate value
-		char pressedCharacter = char_map[scanCode];
-		if (pressedCharacter == '\0') printc_xy(0,0,'C');
-    else print_xy(0, 0, pressedCharacter);
+	Byte value = inb(0x60); // Reads the keyboard data register
+
+	if (!(value & 0x80)){ // Make (key pressed) -> Translate value
+		char pressedCharacter = char_map[value & 0x7F];
+		if (pressedCharacter == '\0') printc_xy(0, 0, 'C');
+    else printc_xy(0, 0, pressedCharacter);
 	}
 }
 
