@@ -42,3 +42,10 @@ int strlen(char *a)
   
   return i;
 }
+
+void perror() {
+	char buffer[256];
+	itoa(errno,buffer);
+	write(1,buffer,256);
+}
+

@@ -34,7 +34,7 @@ void printc(char c)
   }
   else
   {
-  Word ch = (Word) (c & 0x00FF) | 0x0B00;
+  Word ch = (Word) (c & 0x00FF) | 0x0200;
 	Word *screen = (Word *)0xb8000;
 	screen[(y * NUM_COLUMNS + x)] = ch;
     if (++x >= NUM_COLUMNS)
