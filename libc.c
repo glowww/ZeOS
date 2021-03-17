@@ -44,7 +44,7 @@ int strlen(char *a)
 }
 
 void perror() {
-	char buffer[256];
+	char buffer[256]= {'U','n','e','x','p','c','t','e','d',' ','e','r','r','o','r','!',':',')'};
 	itoa(errno,buffer);
 	write(1,buffer,256);
 }

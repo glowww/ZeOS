@@ -6,6 +6,7 @@
 #include <segment.h>
 #include <hardware.h>
 #include <io.h>
+#include <sched.h>
 
 #include <zeos_interrupt.h>
 
@@ -13,6 +14,8 @@ Gate idt[IDT_ENTRIES];
 Register    idtR;
 
 void keyboard_handler();
+void writeMSR();
+void system_call_handler();
 
 extern long int zeos_ticks;
 char char_map[] =
@@ -89,6 +92,9 @@ void setIdt()
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
   setInterruptHandler(32, clock_handler, 0);
   setInterruptHandler(33, keyboard_handler, 0);
+  writeMSR(__KERNEL_CS, 0x174);
+  writeMSR(INITIAL_ESP, 0x175);
+  writeMSR(system_call_handler, 0x176);
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 

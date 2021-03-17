@@ -113,3 +113,15 @@ end:
 	movl %eax, 0x18(%esp)
 	RESTORE_ALL
 	iret
+
+ENTRY(writeMSR)
+	push %ebp
+	movl %esp, %ebp
+	movl 8(%ebp), %eax //content of MSR register
+	movl 12(%ebp), %ecx //register number
+	xor %edx, %edx
+	wrmsr
+	movl %ebp, %esp
+	popl %ebp
+	ret
+

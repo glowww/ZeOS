@@ -73,8 +73,8 @@ int sys_write(int fd, char * buffer, int size){
     }
 
     if (bytesLeft > 0) {
-	    copy_from_user(buffer,sys_buffer,size);
-	    ret = sys_write_console(sys_buffer, buff);
+	    copy_from_user(buffer, sys_buffer, bytesLeft);
+	    ret = sys_write_console(sys_buffer, bytesLeft);
 	    bytesLeft -= ret;
     }
     int result = (size - bytesLeft);
