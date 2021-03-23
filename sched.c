@@ -9,14 +9,15 @@
 union task_union task[NR_TASKS]
   __attribute__((__section__(".data.task")));
 
-#if 0
+
 struct task_struct *list_head_to_task_struct(struct list_head *l)
 {
   return list_entry( l, struct task_struct, list);
 }
-#endif
 
 extern struct list_head blocked;
+struct list_head freequeue; //free queue
+struct list_head readyqueue;
 
 
 /* get_DIR - Returns the Page Directory address for task 't' */
@@ -55,7 +56,7 @@ void cpu_idle(void)
 
 void init_idle (void)
 {
-
+	
 }
 
 void init_task1(void)
@@ -65,7 +66,17 @@ void init_task1(void)
 
 void init_sched()
 {
+	INIT_LIST_HEAD(&readyqueue); //ready queue initialized as an empty queue
+	initialize_freequeue();
+}
 
+void initialize_freequeue() //must initialize freequeue to  empty
+{ 
+	INIT_LIST_HEAD(&freequeue);
+	for(int i = 0; i < NR_TASKS; i++){
+		list_add_tail(&(task[i].task.list), &freequeue); //task[i].task.list is the HEAD and freequeue is the TAIL of the queue
+		task[i].task.PID = -1;
+	}
 }
 
 struct task_struct* current()

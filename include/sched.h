@@ -14,9 +14,12 @@
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
+extern struct list_head freequeue; //freequeue -- do not mangle its name
+
 struct task_struct {
   int PID;			/* Process ID. This MUST be the first field of the struct. */
   page_table_entry * dir_pages_baseAddr;
+  struct list_head list; //used to enqueue the structure into a queue
 };
 
 union task_union {
@@ -37,6 +40,8 @@ void init_task1(void);
 void init_idle(void);
 
 void init_sched(void);
+
+void initialize_freequeue(void);
 
 struct task_struct * current();
 
