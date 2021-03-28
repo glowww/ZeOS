@@ -18,6 +18,7 @@ struct task_struct *list_head_to_task_struct(struct list_head *l)
 extern struct list_head blocked;
 struct list_head freequeue; //free queue
 struct list_head readyqueue;
+struct task_struct *idle_task;
 
 
 /* get_DIR - Returns the Page Directory address for task 't' */
@@ -56,11 +57,36 @@ void cpu_idle(void)
 
 void init_idle (void)
 {
-	
+	struct list_head * idleTaskUnionLH = list_first(&freequeue);
+	list_del (idleTaskUnionLH);
+	struct task_struct * idleTaskStruct = list_head_to_task_struct(idleTaskUnionLH); //get task_struct
+  	union task_union * idleTaskUnion = (union task_union*)idleTaskStruct;			//get task_union
+	idleTaskStruct -> PID = 0; 
+	allocate_DIR(idleTaskStruct);
+
+	//INITIALIZE CONTEXT TO RESTORE
+	idleTaskUnion->stack[KERNEL_STACK_SIZE - 1] = &cpu_idle; //RETURN ADDRESS
+	idleTaskUnion->stack[KERNEL_STACK_SIZE - 2] = 0; //REGISTER EBP
+	idleTaskStruct->esp_register = &(idleTaskUnion->stack[KERNEL_STACK_SIZE - 2]);
+
+	idle_task = idleTaskStruct;
 }
 
-void init_task1(void)
+//FIRST USER PROCESS TO BE EXECUTED AFTER BOOTING THE OS
+void init_task1(void) //parent of all processes of the system
 {
+	struct list_head * initTaskUnionLH = list_first(&freequeue);
+	list_del (idleTaskUnionLH);
+	struct task_struct * initTaskStruct = list_head_to_task_struct(idleTaskUnionLH); //get task_struct
+	union task_union * initTaskUnion = (union task_union*)idleTaskStruct;
+	initTaskStruct -> PID = 1;
+
+	allocate_DIR(initTaskStruct);
+	set_user_pages(initTaskStruct); //inits pages for process
+
+	//TSS AND MSR?????
+
+	set_cr3(initTaskStruct->dir_pages_baseAddr); //set cr3 to directory base address
 }
 
 
@@ -69,7 +95,7 @@ void init_sched()
 	INIT_LIST_HEAD(&readyqueue); //ready queue initialized as an empty queue
 	initialize_freequeue();
 }
-
+ 
 void initialize_freequeue() //must initialize freequeue to  empty
 { 
 	INIT_LIST_HEAD(&freequeue);
