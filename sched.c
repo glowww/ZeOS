@@ -116,3 +116,23 @@ struct task_struct* current()
   return (struct task_struct*)(ret_value&0xfffff000);
 }
 
+void task_switch(union task_union*t){
+	__asm__ __volatile__ ( //save the registers ESI, EDI and EBX
+		"pushl %esi\n"
+		"pushl %edi\n"
+		"pushl %ebx\n"
+	);
+
+	inner_task_switch(t); //let inner_task_switch do the magic
+
+	__asm__ __volatile__ ( //restore previously saved registers
+		"popl %esi\n"
+		"popl %edi\n"
+		"popl %ebx\n"
+	);
+}
+
+void inner_task_switch(union task_union*t){
+	
+	tss.esp0 = (unsigned long) &t->stack[KERNEL_STACK_SIZE];
+}
