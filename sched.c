@@ -21,6 +21,9 @@ struct list_head freequeue;
 struct list_head readyqueue;
 struct task_struct *idle_task;
 
+void setEsp(DWord * data);
+
+DWord getEbp();
 
 /* get_DIR - Returns the Page Directory address for task 't' */
 page_table_entry * get_DIR (struct task_struct *t) 
@@ -85,7 +88,7 @@ void init_task1(void) //parent of all processes of the system
 
 	set_user_pages(initTaskStruct); //inits pages for process
 
-	tss.esp0 = (DWord) &(initTaskUnion->stack[KERNEL_STACK_SIZE]); // Point the TSS to the new_task system stack
+	tss.esp0 = KERNEL_ESP(initTaskUnion); // Point the TSS to the new_task system stack
 
 	set_cr3(initTaskStruct->dir_pages_baseAddr); //set cr3 to directory base address
 }
@@ -122,23 +125,17 @@ struct task_struct* current()
   return (struct task_struct*)(ret_value&0xfffff000);
 }
 
-void task_switch(union task_union*t){
-	__asm__ __volatile__ ( //save the registers ESI, EDI and EBX
-		"pushl %esi\n"
-		"pushl %edi\n"
-		"pushl %ebx\n"
-	);
-
-	inner_task_switch(t); //let inner_task_switch do the magic
-
-	__asm__ __volatile__ ( //restore previously saved registers
-		"popl %esi\n"
-		"popl %edi\n"
-		"popl %ebx\n"
-	);
-}
-
-void inner_task_switch(union task_union*t){
+void inner_task_switch(union task_union *new){
 	
-	tss.esp0 = (DWord) &t->stack[KERNEL_STACK_SIZE];
+	tss.esp0 = KERNEL_ESP(new);
+	writeMsr(0x175, (int) KERNEL_ESP(new));
+
+	struct task_struct * current_task_struct = current();
+	page_table_entry * dir_new = get_DIR((struct task_struct *) new);
+	page_table_entry * dir_current = get_DIR(current_task_struct);
+
+	if(dir_new != dir_current) set_cr3(dir_new);
+	
+	current()->esp_register = (DWord *) getEbp(); 
+	setEsp(new->task.esp_register);
 }
