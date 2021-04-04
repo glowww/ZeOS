@@ -76,12 +76,12 @@ void init_idle (void)
 void init_task1(void) //parent of all processes of the system
 {
 	struct list_head * initTaskUnionLH = list_first(&freequeue);
-	list_del (idleTaskUnionLH);
-	struct task_struct * initTaskStruct = list_head_to_task_struct(idleTaskUnionLH); //get task_struct
-	union task_union * initTaskUnion = (union task_union*)idleTaskStruct;
+	list_del (initTaskUnionLH);
+	struct task_struct * initTaskStruct = list_head_to_task_struct(initTaskUnionLH); //get task_struct
+	union task_union * initTaskUnion = (union task_union*)initTaskStruct;
 	initTaskStruct -> PID = 1;
-
 	allocate_DIR(initTaskStruct);
+
 	set_user_pages(initTaskStruct); //inits pages for process
 
 	//TSS AND MSR?????
