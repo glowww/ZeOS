@@ -15,8 +15,9 @@ struct task_struct *list_head_to_task_struct(struct list_head *l)
   return list_entry( l, struct task_struct, list);
 }
 
+extern TSS tss; 
 extern struct list_head blocked;
-struct list_head freequeue; //free queue
+struct list_head freequeue;
 struct list_head readyqueue;
 struct task_struct *idle_task;
 
@@ -84,7 +85,7 @@ void init_task1(void) //parent of all processes of the system
 
 	set_user_pages(initTaskStruct); //inits pages for process
 
-	//TSS AND MSR?????
+	tss.esp0 = (DWord) &(initTaskUnion->stack[KERNEL_STACK_SIZE]); // Point the TSS to the new_task system stack
 
 	set_cr3(initTaskStruct->dir_pages_baseAddr); //set cr3 to directory base address
 }
@@ -139,5 +140,5 @@ void task_switch(union task_union*t){
 
 void inner_task_switch(union task_union*t){
 	
-	tss.esp0 = (unsigned long) &t->stack[KERNEL_STACK_SIZE];
+	tss.esp0 = (DWord) &t->stack[KERNEL_STACK_SIZE];
 }
