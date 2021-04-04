@@ -94,6 +94,7 @@ void init_sched()
 {
 	INIT_LIST_HEAD(&readyqueue); //ready queue initialized as an empty queue
 	initialize_freequeue();
+	initialize_readyqueue();
 }
  
 void initialize_freequeue() //must initialize freequeue to  empty
@@ -103,6 +104,10 @@ void initialize_freequeue() //must initialize freequeue to  empty
 		list_add_tail(&(task[i].task.list), &freequeue); //task[i].task.list is the HEAD and freequeue is the TAIL of the queue
 		task[i].task.PID = -1;
 	}
+}
+
+void initialize_readyqueue(void) {
+	INIT_LIST_HEAD(&readyqueue);
 }
 
 struct task_struct* current()

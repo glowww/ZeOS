@@ -44,6 +44,8 @@ void init_sched(void);
 
 void initialize_freequeue(void);
 
+void initialize_readyqueue(void);
+
 struct task_struct * current();
 
 void task_switch(union task_union*t);
