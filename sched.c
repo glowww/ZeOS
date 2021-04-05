@@ -15,6 +15,8 @@ struct task_struct *list_head_to_task_struct(struct list_head *l)
   return list_entry( l, struct task_struct, list);
 }
 
+int MAX_PID = 1;
+int quantum = 0;
 extern TSS tss; 
 extern struct list_head blocked;
 struct list_head freequeue;
@@ -138,4 +140,66 @@ void inner_task_switch(union task_union *new){
 	
 	current()->esp_register = (DWord *) getEbp(); 
 	setEsp(new->task.esp_register);
+}
+
+void update_sched_data_rr()
+{
+	quantum--;
+}
+
+int needs_sched_rr()
+{	
+	int no_quantum = (quantum <= 0);
+	int is_valid_task = (current()->PID > 0);
+	int processes_available = !list_empty(&readyqueue);
+	return (no_quantum || is_valid_task) && processes_available;
+}
+
+void update_process_state_rr(struct task_struct *t, struct list_head *dest)
+{
+	if(t->state != ST_RUN) list_del(&t->list);
+
+	if(dest == NULL) t->state = ST_RUN;
+	else {
+		list_add_tail(&t->list, dest);	
+		if(dest == &readyqueue) {
+			t->state = ST_READY;
+		}
+		else{
+			t->state = ST_BLOCKED;
+		}
+	} 
+}
+
+void sched_next_rr()
+{
+	if (list_empty(&readyqueue)){
+		task_switch((union task_union *) idle_task);
+	}
+	else {
+		struct list_head * next_lh = list_first(&readyqueue);
+		list_del (next_lh);
+		struct task_struct * next_task = list_head_to_task_struct(next_lh);
+		next_task->state=ST_RUN;
+		quantum = get_quantum(next_task);
+
+		// update_process_state_rr(next_task, NULL);
+		task_switch((union task_union*) next_task);
+	}
+}
+
+int get_quantum(struct task_struct *t){
+	return t->quantum;
+}
+
+void set_quantum(struct task_struct *t, int new_quantum){
+	t->quantum = new_quantum;
+}
+
+void schedule(){
+	update_sched_data_rr();
+	if(needs_sched_rr()){
+		update_process_state_rr(current(), &readyqueue);
+		sched_next_rr();
+	}
 }

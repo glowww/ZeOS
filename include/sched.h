@@ -21,6 +21,9 @@ struct task_struct {
   page_table_entry * dir_pages_baseAddr; //to load cr3?
   struct list_head list; //used to enqueue the structure into a queue
   DWord esp_register;
+  enum state_t state;
+  struct stats stats;
+  int quantum;
 };
 
 union task_union {

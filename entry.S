@@ -149,3 +149,7 @@ ENTRY(setEsp)
 ENTRY(getEbp)
 	movl %ebp, %eax
 	ret;
+
+ENTRY(ret_from_fork)
+	RESTORE_ALL
+	iret

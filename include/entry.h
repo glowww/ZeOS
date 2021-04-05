@@ -6,3 +6,5 @@
 #define __ENTRY_H__
 
 #endif  /* __ENTRY_H__ */
+
+void ret_from_fork();
