@@ -133,7 +133,7 @@ int sys_fork()
   new_task->esp_register= &new_task_union->stack[index-1];
 
   // Insert the new process into the readyqueue list
-  list_add_tail(new_task, &readyqueue); 
+  list_add_tail(listHead, &readyqueue); 
 
   // Return the pid of the child process
   return new_task->PID;

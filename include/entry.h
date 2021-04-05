@@ -5,6 +5,14 @@
 #ifndef __ENTRY_H__
 #define __ENTRY_H__
 
-#endif  /* __ENTRY_H__ */
+void keyboard_handler();
+
+void system_call_handler();
+
+void clock_handler();
+
+void writeMSR(int reg, int val);
 
 void ret_from_fork();
+
+#endif  /* __ENTRY_H__ */

@@ -22,4 +22,7 @@ void exit();
 
 int gettime();
 
+void perror();
+int errno;
+
 #endif  /* __LIBC_H__ */

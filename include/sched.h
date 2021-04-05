@@ -76,4 +76,6 @@ void update_stats_system_to_user(struct stats *stats);
 void update_stats_ready_to_run(struct stats *stats);
 void update_stats_run_to_ready(struct stats *stats);
 
+void schedule(void);
+
 #endif  /* __SCHED_H__ */

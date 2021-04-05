@@ -7,15 +7,12 @@
 #include <hardware.h>
 #include <io.h>
 #include <sched.h>
+#include <entry.h>
 
 #include <zeos_interrupt.h>
 
 Gate idt[IDT_ENTRIES];
 Register    idtR;
-
-void keyboard_handler();
-void writeMSR();
-void system_call_handler();
 
 extern long int zeos_ticks;
 char char_map[] =
@@ -79,8 +76,6 @@ void setTrapHandler(int vector, void (*handler)(), int maxAccessibleFromPL)
   idt[vector].highOffset      = highWord((DWord)handler);
 }
 
-void clock_handler();
-
 void setIdt()
 {
   /* Program interrups/exception service routines */
@@ -92,9 +87,9 @@ void setIdt()
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
   setInterruptHandler(32, clock_handler, 0);
   setInterruptHandler(33, keyboard_handler, 0);
-  writeMSR(__KERNEL_CS, 0x174);
-  writeMSR(INITIAL_ESP, 0x175);
-  writeMSR(system_call_handler, 0x176);
+  writeMSR(0x174, __KERNEL_CS);
+	writeMSR(0x175, INITIAL_ESP);
+	writeMSR(0x176, (int)system_call_handler);
 
   /* ADD INITIALIZATION CODE FOR INTERRUPT VECTOR */
 

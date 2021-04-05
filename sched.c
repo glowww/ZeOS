@@ -160,7 +160,7 @@ struct task_struct* current()
 void inner_task_switch(union task_union *new){
 	
 	tss.esp0 = KERNEL_ESP(new);
-	writeMsr(0x175, (int) KERNEL_ESP(new));
+	writeMSR(0x175, tss.esp0);
 
 	struct task_struct * current_task_struct = current();
 	page_table_entry * dir_new = get_DIR((struct task_struct *) new);
@@ -169,7 +169,7 @@ void inner_task_switch(union task_union *new){
 	if(dir_new != dir_current) set_cr3(dir_new);
 	
 	current()->esp_register = (DWord *) getEbp(); 
-	setEsp(new->task.esp_register);
+	setEsp(&new->task.esp_register);
 }
 
 void update_sched_data_rr()
@@ -235,6 +235,12 @@ void schedule(){
 	}
 }
 
+void update_stats(unsigned long *v, unsigned long *elapsed)
+{
+  *v += get_ticks() - *elapsed;
+  *elapsed = get_ticks();
+}
+
 void update_stats_user_to_system(struct stats *stats)
 {
 	update_stats(&stats->user_ticks, &stats->elapsed_total_ticks);
@@ -255,8 +261,3 @@ void update_stats_ready_to_run(struct stats *stats)
 	update_stats(&stats->ready_ticks, &stats->elapsed_total_ticks);
 }
 
-void update_stats(unsigned long *v, unsigned long *elapsed)
-{
-  *v += get_ticks() - *elapsed;
-  *elapsed = get_ticks();
-}

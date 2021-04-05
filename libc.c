@@ -5,6 +5,8 @@
 #include <libc.h>
 
 #include <types.h>
+#include <errno.h>
+#include <errmsg.h>
 
 int errno;
 
@@ -43,9 +45,11 @@ int strlen(char *a)
   return i;
 }
 
-void perror() {
-	char buffer[256]= {'U','n','e','x','p','c','t','e','d',' ','e','r','r','o','r','!',':',')'};
-	itoa(errno,buffer);
-	write(1,buffer,256);
-}
+void perror(void)
+{
+  if (errno < MIN_ERRNO_VALUE || errno > MAX_ERRNO_VALUE) errno = 1;
 
+  write(1, "ERROR DESCRIPTION: ", 19);
+  write(1, errmsg[errno - 1], strlen(errmsg[errno - 1]));
+  write(1, "\n", 1);
+}
