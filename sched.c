@@ -93,7 +93,7 @@ void init_idle (void)
 
 	idleTaskStruct->quantum = QUANTUM_DEFAULT;
 	idleTaskStruct->state = ST_READY;
-	init_stats(&idleTaskStruct->statistics);
+	init_stats(&idleTaskStruct->stats);
 
 	//INITIALIZE CONTEXT TO RESTORE
 	idleTaskUnion->stack[KERNEL_STACK_SIZE - 1] = &cpu_idle; //RETURN ADDRESS
@@ -115,8 +115,8 @@ void init_task1(void) //parent of all processes of the system
 
 	initTaskStruct->quantum = QUANTUM_DEFAULT;
 	initTaskStruct->state = ST_RUN;
-	init_stats(&initTaskStruct->statistics);
-	initTaskStruct->statistics.remaining_ticks = initTaskStruct->quantum;
+	init_stats(&initTaskStruct->stats);
+	initTaskStruct->stats.remaining_ticks = initTaskStruct->quantum;
 
 	set_user_pages(initTaskStruct); //inits pages for process
 
@@ -211,7 +211,7 @@ void sched_next_rr()
 		list_del (next_lh);
 		struct task_struct * next_task = list_head_to_task_struct(next_lh);
 		next_task->state=ST_RUN;
-		next_task->statistics.total_trans += 1;
+		next_task->stats.total_trans += 1;
 		quantum = get_quantum(next_task);
 
 		// update_process_state_rr(next_task, NULL);
@@ -235,24 +235,24 @@ void schedule(){
 	}
 }
 
-void update_stats_user_to_system(struct stats *statistics)
+void update_stats_user_to_system(struct stats *stats)
 {
-	update_stats(&statistics->user_ticks, &statistics->elapsed_total_ticks);
+	update_stats(&stats->user_ticks, &stats->elapsed_total_ticks);
 }
 
-void update_stats_system_to_user(struct stats *statistics)
+void update_stats_system_to_user(struct stats *stats)
 {
-	update_stats(&statistics->system_ticks, &statistics->elapsed_total_ticks);
+	update_stats(&stats->system_ticks, &stats->elapsed_total_ticks);
 }
 
-void update_stats_run_to_ready(struct stats *statistics)
+void update_stats_run_to_ready(struct stats *stats)
 {
-	update_stats(&statistics->system_ticks, &statistics->elapsed_total_ticks);
+	update_stats(&stats->system_ticks, &stats->elapsed_total_ticks);
 }
 
-void update_stats_ready_to_run(struct stats *statistics)
+void update_stats_ready_to_run(struct stats *stats)
 {
-	update_stats(&statistics->ready_ticks, &statistics->elapsed_total_ticks);
+	update_stats(&stats->ready_ticks, &stats->elapsed_total_ticks);
 }
 
 void update_stats(unsigned long *v, unsigned long *elapsed)

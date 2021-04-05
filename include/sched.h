@@ -8,6 +8,7 @@
 #include <list.h>
 #include <types.h>
 #include <mm_address.h>
+#include <stats.h>
 
 #define NR_TASKS      10
 #define KERNEL_STACK_SIZE	1024
@@ -23,7 +24,7 @@ struct task_struct {
   struct list_head list; //used to enqueue the structure into a queue
   DWord esp_register;
   enum state_t state;
-  struct stats statistics;
+  struct stats stats;
   int quantum;
 };
 
@@ -70,9 +71,9 @@ void update_process_state_rr(struct task_struct *t, struct list_head *dest);
 int needs_sched_rr();
 void update_sched_data_rr();
 
-void update_stats_user_to_system(struct stats *statistics);
-void update_stats_system_to_user(struct stats *statistics);
-void update_stats_ready_to_run(struct stats *statistics);
-void update_stats_run_to_ready(struct stats *statistics);
+void update_stats_user_to_system(struct stats *stats);
+void update_stats_system_to_user(struct stats *stats);
+void update_stats_ready_to_run(struct stats *stats);
+void update_stats_run_to_ready(struct stats *stats);
 
 #endif  /* __SCHED_H__ */

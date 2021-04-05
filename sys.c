@@ -198,8 +198,8 @@ int sys_get_stats(int pid, struct stats *st){
     struct task_struct *t;
     for (t = &(task[i=0].task); i < NR_TASKS; t = &(task[++i].task)){
         if (t->PID == pid){
-            t->statistics.remaining_ticks = quantum;
-            copy_to_user(&(t->statistics), st, sizeof(struct stats));	
+            t->stats.remaining_ticks = quantum;
+            copy_to_user(&(t->stats), st, sizeof(struct stats));	
             return 0;
         }
     }	
