@@ -14,6 +14,7 @@
 
 #include <sched.h>
 #include <entry.h>
+#include <stats.h>
 
 #define LECTURA 0
 #define ESCRIPTURA 1
@@ -186,4 +187,21 @@ int sys_write(int fd, char * buffer, int size){
     }
     int result = (size - bytesLeft);
     return result;
+}
+
+int sys_get_stats(int pid, struct stats *st){
+    
+    if(!access_ok(VERIFY_WRITE, st, sizeof(struct stats))) return -EFAULT;
+    if (pid < 0) return -EINVAL;
+
+    int i;
+    struct task_struct *t;
+    for (t = &(task[i=0].task); i < NR_TASKS; t = &(task[++i].task)){
+        if (t->PID == pid){
+            t->statistics.remaining_ticks = quantum;
+            copy_to_user(&(t->statistics), st, sizeof(struct stats));	
+            return 0;
+        }
+    }	
+    return -ESRCH;
 }

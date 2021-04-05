@@ -11,6 +11,7 @@
 
 #define NR_TASKS      10
 #define KERNEL_STACK_SIZE	1024
+#define QUANTUM_DEFAULT 10
 
 enum state_t { ST_RUN, ST_READY, ST_BLOCKED };
 
@@ -22,7 +23,7 @@ struct task_struct {
   struct list_head list; //used to enqueue the structure into a queue
   DWord esp_register;
   enum state_t state;
-  struct stats stats;
+  struct stats statistics;
   int quantum;
 };
 
@@ -68,5 +69,10 @@ void sched_next_rr();
 void update_process_state_rr(struct task_struct *t, struct list_head *dest);
 int needs_sched_rr();
 void update_sched_data_rr();
+
+void update_stats_user_to_system(struct stats *statistics);
+void update_stats_system_to_user(struct stats *statistics);
+void update_stats_ready_to_run(struct stats *statistics);
+void update_stats_run_to_ready(struct stats *statistics);
 
 #endif  /* __SCHED_H__ */

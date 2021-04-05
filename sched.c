@@ -6,6 +6,13 @@
 #include <mm.h>
 #include <io.h>
 
+#include <sched.h>
+#include <mm.h>
+#include <io.h>
+#include <entry.h>
+#include <types.h>
+#include <stats.h>
+
 union task_union task[NR_TASKS]
   __attribute__((__section__(".data.task")));
 
@@ -19,6 +26,7 @@ int MAX_PID = 1;
 int quantum = 0;
 extern TSS tss; 
 extern struct list_head blocked;
+extern int dir_pages_refs[NR_TASKS];
 struct list_head freequeue;
 struct list_head readyqueue;
 struct task_struct *idle_task;
@@ -41,14 +49,16 @@ page_table_entry * get_PT (struct task_struct *t)
 
 
 int allocate_DIR(struct task_struct *t) 
-{
-	int pos;
-
-	pos = ((int)t-(int)task)/sizeof(union task_union);
-
-	t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[pos]; 
-
-	return 1;
+{	
+	int i;
+	for(i = 0; i < NR_TASKS; i++){
+		if (!dir_pages_refs[i]){
+			t->dir_pages_baseAddr = (page_table_entry*) &dir_pages[i];
+			dir_pages_refs[i]++;	
+			return 1;
+		}
+	}
+	return -1;
 }
 
 void cpu_idle(void)
@@ -61,6 +71,17 @@ void cpu_idle(void)
 	}
 }
 
+void init_stats(struct stats *st)
+{
+	st->user_ticks = 0;
+	st->system_ticks = 0;
+	st->blocked_ticks = 0;
+	st->ready_ticks = 0;
+	st->elapsed_total_ticks = get_ticks();
+	st->total_trans = 0;
+	st->remaining_ticks = 0;
+}
+
 void init_idle (void)
 {
 	struct list_head * idleTaskUnionLH = list_first(&freequeue);
@@ -69,6 +90,10 @@ void init_idle (void)
   	union task_union * idleTaskUnion = (union task_union*)idleTaskStruct;			//get task_union
 	idleTaskStruct -> PID = 0; 
 	allocate_DIR(idleTaskStruct);
+
+	idleTaskStruct->quantum = QUANTUM_DEFAULT;
+	idleTaskStruct->state = ST_READY;
+	init_stats(&idleTaskStruct->statistics);
 
 	//INITIALIZE CONTEXT TO RESTORE
 	idleTaskUnion->stack[KERNEL_STACK_SIZE - 1] = &cpu_idle; //RETURN ADDRESS
@@ -87,6 +112,11 @@ void init_task1(void) //parent of all processes of the system
 	union task_union * initTaskUnion = (union task_union*)initTaskStruct;
 	initTaskStruct -> PID = 1;
 	allocate_DIR(initTaskStruct);
+
+	initTaskStruct->quantum = QUANTUM_DEFAULT;
+	initTaskStruct->state = ST_RUN;
+	init_stats(&initTaskStruct->statistics);
+	initTaskStruct->statistics.remaining_ticks = initTaskStruct->quantum;
 
 	set_user_pages(initTaskStruct); //inits pages for process
 
@@ -181,6 +211,7 @@ void sched_next_rr()
 		list_del (next_lh);
 		struct task_struct * next_task = list_head_to_task_struct(next_lh);
 		next_task->state=ST_RUN;
+		next_task->statistics.total_trans += 1;
 		quantum = get_quantum(next_task);
 
 		// update_process_state_rr(next_task, NULL);
@@ -202,4 +233,30 @@ void schedule(){
 		update_process_state_rr(current(), &readyqueue);
 		sched_next_rr();
 	}
+}
+
+void update_stats_user_to_system(struct stats *statistics)
+{
+	update_stats(&statistics->user_ticks, &statistics->elapsed_total_ticks);
+}
+
+void update_stats_system_to_user(struct stats *statistics)
+{
+	update_stats(&statistics->system_ticks, &statistics->elapsed_total_ticks);
+}
+
+void update_stats_run_to_ready(struct stats *statistics)
+{
+	update_stats(&statistics->system_ticks, &statistics->elapsed_total_ticks);
+}
+
+void update_stats_ready_to_run(struct stats *statistics)
+{
+	update_stats(&statistics->ready_ticks, &statistics->elapsed_total_ticks);
+}
+
+void update_stats(unsigned long *v, unsigned long *elapsed)
+{
+  *v += get_ticks() - *elapsed;
+  *elapsed = get_ticks();
 }
